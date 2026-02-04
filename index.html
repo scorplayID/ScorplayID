@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Threats - Scorplay</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- RESET & GLOBAL STYLE --- */
+        * { box-sizing: border-box; }
+
+        body, html {
+            margin: 0; padding: 0; min-height: 100%; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0B0B0D; /* Default Hitam */
+            color: white; /* Default Teks Putih */
+            width: 100%; 
+            overflow-x: clip; 
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        /* --- TEMA WARNA (THEMES) --- */
+        body.theme-purple { background-color: #240046; color: white; }
+        body.theme-purple .navbar { background-color: #10002b; border-color: #3c096c; }
+        body.theme-purple .sort-header { border-color: #5a189a; }
+        body.theme-purple .movie-list-item { background-color: #3c096c; border-color: #5a189a; }
+        body.theme-purple .empty-placeholder { color: rgba(255, 255, 255, 0.7); }
+        body.theme-purple .version-text { color: rgba(255, 255, 255, 0.4); }
+
+        body.theme-white { background-color: #f5f5f5; color: #111; }
+        body.theme-white .navbar { background-color: #ffffff; border-color: #ddd; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        body.theme-white .text-content h1 { color: #111; text-shadow: none; }
+        body.theme-white .text-content p { color: #555; }
+        body.theme-white .nav-item a { color: #888; }
+        body.theme-white .nav-item a.active { color: #000; }
+        body.theme-white .movie-list-item { background-color: #fff; border-color: #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        body.theme-white .movie-info h3 { color: #000; }
+        body.theme-white .news-card { background-color: #fff; border-color: #ddd; color: #111; }
+        body.theme-white .profile-name { color: #000; }
+        body.theme-white .news-desc { color: #444; }
+        body.theme-white .sticky-brand .brand-text { color: #000; }
+        body.theme-white .login-container { background-color: #fff; border-color: #ccc; }
+        body.theme-white .login-title { color: #000; }
+        body.theme-white .form-input { background-color: #eee; color: #000; border-color: #ccc; }
+        body.theme-white .logged-in-view .user-name-display { color: #000; }
+        body.theme-white .edit-form-box { background-color: #fff; border-color: #ccc; }
+        body.theme-white .edit-title { color: #000; border-color: #eee; }
+        body.theme-white .empty-placeholder { color: rgba(0, 0, 0, 0.6); }
+        body.theme-white .version-text { color: rgba(0, 0, 0, 0.4); }
+
+        /* --- LOADING SCREEN --- */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0B0B0D; display: flex; justify-content: center; align-items: center;
+            z-index: 99999; transition: opacity 0.5s ease;
+            flex-direction: column; 
+        }
+        .logo-image-loading { width: 120px; height: 120px; object-fit: contain; }
+
+        .version-text {
+            position: absolute; bottom: 30px; 
+            font-size: 0.8rem; color: rgba(255, 255, 255, 0.3); 
+            font-family: monospace; letter-spacing: 2px;
+        }
+
+        /* --- CONTAINER UTAMA --- */
+        #main-content {
+            display: none; position: relative; width: 100%; overflow: visible; 
+        }
+
+        .main-logo {
+            position: absolute; top: 15px; right: 20px; left: auto;  
+            width: 50px; height: 50px; z-index: 10; object-fit: contain;
+            filter: drop-shadow(0 0 5px rgba(0,0,0,0.5));
+        }
+
+        /* --- HERO SECTION --- */
+        .hero-container {
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            width: 100%; position: relative;
+        }
+
+        .text-content {
+            width: 45%; padding-left: 5%; padding-top: 40px; z-index: 2; 
+        }
+        .text-content h1 {
+            font-size: 2.5rem; margin: 0 0 20px 0; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 2px; color: #ffffff;
+            text-shadow: 2px 2px 10px rgba(255, 0, 0, 0.3); line-height: 1.1;
+        }
+        .text-content p {
+            font-size: 1rem; line-height: 1.6; color: #b0b0b0;
+            max-width: 90%; margin-bottom: 30px; 
+        }
+
+        .btn-trailer {
+            display: inline-block; padding: 12px 30px; background-color: white;
+            color: black; font-weight: bold; text-decoration: none;
+            text-transform: uppercase; letter-spacing: 1px; border-radius: 4px;
+            transition: transform 0.2s, background-color 0.2s;
+            cursor: pointer;
+        }
+        .btn-trailer:hover { background-color: #e0e0e0; transform: scale(1.05); }
+
+        /* --- BANNER & VIDEO PLAYER STYLE --- */
+        .banner-container { 
+            position: relative; width: 50%; aspect-ratio: 16 / 9; 
+            overflow: hidden; /* Penting agar video tidak keluar batas */
+            background-color: #000;
+        }
+        .banner-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity 0.5s; }
+        
+        .fade-left {
+            position: absolute; top: 0; left: 0; width: 40%; height: 100%;
+            background: linear-gradient(to right, #0B0B0D, transparent);
+            pointer-events: none; z-index: 2;
+        }
+        .fade-bottom {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 40%; 
+            background: linear-gradient(to bottom, transparent, #0B0B0D);
+            pointer-events: none; z-index: 2;
+        }
+
+        /* Video Wrapper */
+        .video-wrapper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: black; display: none; z-index: 5;
+        }
+        
+        video {
+            width: 100%; height: 100%; object-fit: contain;
+        }
+        
+        /* Custom Controls */
+        .custom-controls {
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            background: rgba(0, 0, 0, 0.7); /* Latar belakang transparan */
+            padding: 10px; display: flex; align-items: center; gap: 10px;
+            z-index: 10; opacity: 0; transition: opacity 0.3s;
+        }
+        .video-wrapper:hover .custom-controls { opacity: 1; } /* Muncul saat hover */
+
+        .control-btn {
+            background: none; border: none; color: white; cursor: pointer;
+            font-size: 1.2rem; width: 30px;
+        }
+        .control-btn:hover { color: #1DA1F2; }
+
+        .time-display {
+            font-size: 0.8rem; font-family: monospace; color: #ddd; min-width: 80px; text-align: center;
+        }
+
+        .progress-bar {
+            flex-grow: 1; cursor: pointer; height: 5px; -webkit-appearance: none;
+            background: #444; border-radius: 5px; outline: none;
+        }
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%;
+            background: #1DA1F2; cursor: pointer;
+        }
+
+        /* Update Theme Fades */
+        body.theme-white .fade-left { background: linear-gradient(to right, #f5f5f5, transparent); }
+        body.theme-white .fade-bottom { background: linear-gradient(to bottom, transparent, #f5f5f5); }
+        body.theme-purple .fade-left { background: linear-gradient(to right, #240046, transparent); }
+        body.theme-purple .fade-bottom { background: linear-gradient(to bottom, transparent, #240046); }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background-color: #0f0f11; 
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+            padding: 20px 0; 
+            margin-top: 30px; 
+            position: -webkit-sticky; position: sticky; top: 0; z-index: 9999;            
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            display: flex; justify-content: center; align-items: center;
+            transition: all 0.5s ease; 
+        }
+
+        .sticky-brand {
+            position: absolute; left: 40px; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center; gap: 10px;
+            opacity: 0; visibility: hidden; pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+        .sticky-brand img { width: 35px; height: 35px; object-fit: contain; }
+        .sticky-brand .brand-text {
+            font-weight: 700; font-size: 1.2rem; color: white;
+            text-transform: uppercase; letter-spacing: 1px;
+            transform: translateX(-30px); opacity: 0;
+            transition: transform 0.5s ease 0.1s, opacity 0.5s ease 0.1s;
+        }
+
+        .nav-menu {
+            list-style: none; padding: 0; margin: 0;
+            display: flex; justify-content: center; gap: 130px; 
+            width: 100%; 
+            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), gap 0.5s ease, padding 0.5s ease;
+        }
+        .nav-item a {
+            color: #888; font-size: 1.8rem; cursor: pointer;
+            transition: color 0.3s, transform 0.2s, font-size 0.3s ease;
+            display: inline-block;
+        }
+        .nav-item a:hover, .nav-item a.active { color: white; transform: scale(1.2); }
+
+        .navbar.is-scrolled { padding: 15px 0; background-color: rgba(15, 15, 17, 0.98); }
+        .navbar.is-scrolled .sticky-brand { opacity: 1; visibility: visible; pointer-events: auto; }
+        .navbar.is-scrolled .sticky-brand .brand-text { transform: translateX(0); opacity: 1; }
+        .navbar.is-scrolled .nav-menu { transform: translateX(120px); gap: 100px; }
+
+        /* --- SCROLL AREA DEFAULT (HOME) --- */
+        .scroll-area {
+            min-height: 100vh; width: 100%;
+            background: linear-gradient(to bottom, #0B0B0D, #000);
+            display: block; padding-top: 50px;
+        }
+        body.theme-white .scroll-area { background: linear-gradient(to bottom, #f5f5f5, #e0e0e0); }
+        body.theme-purple .scroll-area { background: linear-gradient(to bottom, #240046, #10002b); }
+
+        /* --- EMPTY STATE (MERUNGUK) --- */
+        .empty-placeholder {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; opacity: 0.6; margin-top: 50px;
+            color: rgba(255, 255, 255, 0.6); animation: fadeIn 0.8s ease;
+        }
+        .empty-placeholder i { font-size: 4rem; margin-bottom: 20px; }
+        .empty-placeholder p { font-size: 1.1rem; font-weight: 500; max-width: 80%; }
+
+
+        /* --- HALAMAN LAIN --- */
+        #sort-page, #news-page, #profile-page {
+            display: none; width: 100%; min-height: 100vh;
+            padding: 40px 10%;
+            animation: fadeIn 0.5s ease-in-out;
+            background-color: transparent;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- SORT PAGE --- */
+        .sort-header { font-size: 1.5rem; font-weight: bold; margin-bottom: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .movie-list-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background-color: #111; border-radius: 8px; padding: 15px 20px; margin-bottom: 15px; border: 1px solid #222;
+        }
+        .rank-number { font-size: 2rem; font-weight: 900; margin-right: 20px; opacity: 0.7; }
+        .rating { color: #ffd700; font-weight: bold; }
+
+        /* --- NEWS PAGE --- */
+        .news-card {
+            background-color: #0f0f11; border: 1px solid #222; border-radius: 10px;
+            max-width: 600px; margin: 0 auto 30px auto; padding: 20px;
+        }
+        .news-header { display: flex; align-items: center; margin-bottom: 15px; }
+        .profile-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 12px; border: 1px solid #444; }
+        .profile-name { font-weight: bold; font-size: 1rem; display: flex; align-items: center; gap: 5px; }
+        .blue-tick { width: 16px; height: 16px; color: #1DA1F2; }
+        .news-image { width: 100%; border-radius: 5px; aspect-ratio: 4/3; object-fit: cover; background-color: #1a1a1a; }
+
+        /* --- PROFILE PAGE --- */
+        .login-container {
+            max-width: 400px; margin: 50px auto; padding: 30px;
+            background-color: #0f0f11; border: 1px solid #333; border-radius: 12px; text-align: center;
+        }
+        .login-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; opacity: 0.7; font-size: 0.9rem; }
+        .form-input {
+            width: 100%; padding: 12px; border-radius: 6px;
+            background-color: #1a1a1a; border: 1px solid #333; color: white; outline: none;
+        }
+        .btn-confirm {
+            width: 100%; padding: 12px; background-color: white; color: black; border: none; border-radius: 6px;
+            font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 0.9rem;
+        }
+
+        .logged-in-view { width: 100%; display: none; text-align: left; padding-top: 20px; }
+        .profile-header-section { display: flex; flex-direction: column; align-items: flex-start; gap: 15px; margin-bottom: 30px; }
+        .avatar-wrapper {
+            width: 100px; height: 100px; border-radius: 50%; overflow: hidden;
+            border: 2px solid #555; background-color: #111;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .user-avatar-img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .user-avatar-default { font-size: 3rem; color: #555; }
+        .user-name-display { font-size: 2rem; font-weight: 800; line-height: 1.2; }
+
+        .btn-edit-profile {
+            background-color: transparent; border: 1px solid currentColor; color: inherit;
+            padding: 6px 15px; border-radius: 5px; cursor: pointer; font-size: 0.85rem;
+            display: flex; align-items: center; gap: 8px; margin-top: 5px;
+        }
+        
+        .edit-form-box {
+            background-color: #111; border: 1px solid #333; padding: 20px;
+            border-radius: 10px; max-width: 400px; margin-bottom: 30px; display: none;
+        }
+        .btn-save-edit { background-color: #1DA1F2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-top: 10px; font-weight: bold; }
+
+        .settings-section { margin-bottom: 30px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
+        body.theme-white .settings-section { border-top: 1px solid rgba(0,0,0,0.1); }
+        .settings-title { font-size: 1rem; font-weight: bold; margin-bottom: 15px; opacity: 0.8; }
+        
+        .color-options { display: flex; gap: 15px; }
+        .color-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 2px solid #555; cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-btn:hover { transform: scale(1.1); }
+        .btn-black { background-color: #000; }
+        .btn-purple { background-color: #240046; }
+        .btn-white { background-color: #fff; border-color: #ccc; }
+
+        .language-select {
+            width: 100%; max-width: 300px; padding: 10px; border-radius: 5px;
+            background-color: transparent; border: 1px solid #555; color: inherit;
+            font-size: 1rem; outline: none;
+        }
+        .language-select option { background-color: #000; color: white; }
+        body.theme-white .language-select option { background-color: #fff; color: #000; }
+
+        .logout-container { margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        body.theme-white .logout-container { border-top: 1px solid rgba(0,0,0,0.1); }
+        .btn-logout {
+            background: transparent; border: 1px solid #b71c1c; color: #b71c1c;
+            padding: 10px 25px; border-radius: 5px; cursor: pointer; width: 100%; text-align: center;
+        }
+        .btn-logout:hover { background: #b71c1c; color: white; }
+
+        /* --- RESPONSIVE --- */
+        @media screen and (max-width: 768px) {
+            .main-logo { top: 20px; left: 20px; right: auto; }
+            .hero-container { flex-direction: column-reverse; padding-bottom: 0; }
+            .banner-container { width: 100%; height: auto; aspect-ratio: 16/9; }
+            .fade-left { display: none; }
+            .fade-bottom { height: 60%; }
+            
+            .text-content { width: 100%; padding: 30px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+            .text-content h1 { font-size: 2.5rem; margin-top: 10px; }
+            
+            .navbar { margin-top: 30px; }
+            .nav-menu { gap: 0; justify-content: space-evenly; width: 100%; padding: 0; }
+            
+            .sticky-brand { left: 15px; } 
+            .sticky-brand img { width: 25px; height: 25px; } 
+            .sticky-brand .brand-text { display: block; font-size: 0.9rem; }
+
+            .navbar.is-scrolled .nav-menu {
+                transform: none; padding-left: 130px; padding-right: 15px;
+                justify-content: space-between; gap: 0; 
+            }
+            .navbar.is-scrolled .nav-item a { font-size: 1.1rem; }
+
+            #sort-page, #news-page, #profile-page { padding: 30px 20px; }
+            .news-card, .login-container { width: 100%; }
+        }
+    </style>
+</head>
+<body id="app-body">
+
+    <div id="loading-screen">
+        <img src="1770123686511.png" alt="Logo Loading" class="logo-image-loading">
+        <div class="version-text">V 1.0.0</div>
+    </div>
+
+    <div id="main-content">
+        
+        <img src="1770123686511.png" alt="Logo Pojok" class="main-logo">
+
+        <div class="hero-container">
+            <div class="text-content">
+                <h1 id="txt-title">Dark threats</h1>
+                <p id="txt-desc">
+                  Dark threats sebuah film pendek yang menceritakan keirian manusia terhadap manusia lain karena harta kekayaan nya jauh lebih besar dari nya...
+                </p>
+                <div class="btn-trailer" id="btn-trailer">Lihat trailer</div>
+            </div>
+
+            <div class="banner-container" id="banner-container">
+                <img src="1769853948090 (1).png" alt="Banner" class="banner-img" id="main-banner-img">
+                
+                <div class="video-wrapper" id="video-wrapper">
+                    <video id="main-video" src="trailer.mp4" controlsList="nodownload"></video>
+                    
+                    <div class="custom-controls">
+                        <button class="control-btn" id="play-pause-btn"><i class="fa-solid fa-play"></i></button>
+                        <span class="time-display" id="current-time">00:00</span>
+                        <input type="range" class="progress-bar" id="progress-bar" value="0" min="0" max="100">
+                        <span class="time-display" id="duration">00:00</span>
+                    </div>
+                </div>
+
+                <div class="fade-left"></div>
+                <div class="fade-bottom"></div>
+            </div>
+        </div>
+
+        <nav class="navbar" id="myNavbar">
+            <div class="sticky-brand">
+                <img src="1770123686511.png" alt="Sticky Logo">
+                <span class="brand-text">Scorplay</span>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#" id="btn-home"><i class="fa-solid fa-film"></i></a></li>
+                <li class="nav-item"><a href="#" id="btn-sort"><i class="fa-solid fa-sort"></i></a></li>
+                <li class="nav-item"><a href="#" id="btn-news"><i class="fa-solid fa-newspaper"></i></a></li>
+                <li class="nav-item"><a href="#" id="btn-profile"><i class="fa-solid fa-user"></i></a></li>
+            </ul>
+        </nav>
+
+        <div class="scroll-area" id="default-scroll-area">
+            <div class="empty-placeholder">
+                <i class="fa-solid fa-face-frown-open"></i>
+                <p id="txt-empty">Film masih belum di upload tunggu ya..</p>
+            </div>
+        </div>
+
+        <div id="sort-page">
+            <div class="sort-header" id="txt-rank-title">Popular Ranking</div>
+            <div class="movie-list-item">
+                <div style="display:flex; align-items:center;">
+                    <span class="rank-number">01</span>
+                    <div class="movie-info">
+                        <h3>Dark Threats</h3>
+                        <p id="txt-genre-1">Drama 13+</p>
+                    </div>
+                </div>
+                <span class="rating"><i class="fa-solid fa-star"></i> 0.0</span>
+            </div>
+        </div>
+
+        <div id="news-page">
+            <div class="news-card">
+                <div class="news-header">
+                    <img src="1770123686511.png" alt="Profile" class="profile-pic">
+                    <div class="profile-name">
+                        Scorplay
+                        <i class="fa-solid fa-circle-check blue-tick"></i>
+                    </div>
+                </div>
+                <div class="news-desc" id="txt-news-1">
+                    Informasi terbaru mengenai perilisan film "Dark Threats".
+                </div>
+                <img src="1769853948090 (1).png" alt="Post Image" class="news-image">
+            </div>
+        </div>
+
+        <div id="profile-page">
+            
+            <div id="login-form-box" class="login-container">
+                <div class="login-title" id="txt-login-title">Masuk Akun</div>
+                <div class="form-group">
+                    <label id="lbl-username">Nama Pengguna</label>
+                    <input type="text" id="input-username" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-email">Email</label>
+                    <input type="email" id="input-email" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label id="lbl-password">Password</label>
+                    <input type="password" id="input-password" class="form-input">
+                </div>
+                <p class="privacy-text" id="txt-privacy">
+                    Semua informasi yang kamu tulis di sini tidak di kirim ke @scorplay melainkan di simpan di perangkat kamu.
+                </p>
+                <button id="btn-login-confirm" class="btn-confirm">Konfirmasi</button>
+            </div>
+
+            <div id="logged-in-box" class="logged-in-view">
+                <div class="profile-header-section">
+                    <div class="avatar-wrapper">
+                        <i id="default-avatar-icon" class="fa-solid fa-user user-avatar-default"></i>
+                        <img id="display-avatar-img" src="" alt="User" class="user-avatar-img">
+                    </div>
+
+                        <div class="user-name-display" id="display-username">Nama User</div>
+                        <button id="btn-show-edit" class="btn-edit-profile">
+                            <i class="fa-solid fa-pen"></i> <span id="txt-edit-btn">Edit Profil</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="edit-box" class="edit-form-box">
+                    <div class="edit-title" id="txt-edit-title">Edit Profil</div>
+                    <div class="form-group">
+                        <label id="lbl-edit-photo">Ganti Foto Profil</label>
+                        <input type="file" id="edit-file-input" class="form-input" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label id="lbl-edit-name">Ganti Nama</label>
+                        <input type="text" id="edit-name-input" class="form-input">
+                    </div>
+                    <button id="btn-save-edit" class="btn-save-edit">Simpan</button>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-title" id="txt-theme-title">Ubah Latar Belakang</div>
+                    <div class="color-options">
+                        <button class="color-btn btn-purple" onclick="changeTheme('purple')" title="Ungu"></button>
+                        <button class="color-btn btn-black" onclick="changeTheme('black')" title="Hitam"></button>
+                        <button class="color-btn btn-white" onclick="changeTheme('white')" title="Putih"></button>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <div class="settings-title" id="txt-lang-title">Bahasa</div>
+                    <select id="language-select" class="language-select" onchange="changeLanguage(this.value)">
+                        <option value="id">Indonesia</option>
+                        <option value="my">Malaysia</option>
+                        <option value="en">English</option>
+                        <option value="br">Brazil (Português)</option>
+                        <option value="ph">Filipina (Tagalog)</option>
+                        <option value="kr">Korea (한국어)</option>
+                        <option value="jp">Jepang (日本語)</option>
+                    </select>
+                </div>
+                
+                <div class="logout-container">
+                    <button id="btn-logout" class="btn-logout">Keluar Akun</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- DATA BAHASA LENGKAP ---
+        let currentLang = 'id'; 
+        let isVideoPlaying = false; // Status apakah video sedang diputar
+
+        const translations = {
+            id: {
+                heroDesc: "Dark threats sebuah film pendek yang menceritakan keirian manusia terhadap manusia lain karena harta kekayaan nya jauh lebih besar dari nya...",
+                trailer: "Lihat trailer",
+                back: "Kembali", // New Translation
+                emptyState: "Film masih belum di upload tunggu ya..",
+                rankTitle: "Popular Ranking",
+                movieGenre: "Drama 13+",
+                newsDesc: "Informasi terbaru mengenai perilisan film \"Dark Threats\".",
+                loginTitle: "Masuk Akun",
+                lblUser: "Nama Pengguna",
+                lblPass: "Password",
+                privacy: "Semua informasi yang kamu tulis di sini tidak di kirim ke @scorplay melainkan di simpan di perangkat kamu.",
+                confirm: "Konfirmasi",
+                editBtn: "Edit Profil",
+                editTitle: "Edit Profil",
+                editPhoto: "Ganti Foto Profil",
+                editName: "Ganti Nama",
+                save: "Simpan",
+                themeTitle: "Ubah Latar Belakang",
+                langTitle: "Bahasa",
+                logout: "Keluar Akun",
+                alertLoginSuccess: "Login Berhasil!",
+                alertFillAll: "Mohon lengkapi semua kolom.",
+                alertLogoutConfirm: "Yakin ingin keluar?",
+                alertProfileUpdated: "Profil berhasil diperbarui!",
+                alertNameUpdated: "Nama berhasil diperbarui!"
+            },
+            my: {
+                heroDesc: "Dark threats adalah sebuah filem pendek yang menceritakan tentang hasad dengki manusia terhadap orang lain kerana kekayaan mereka jauh lebih besar...",
+                trailer: "Tonton treler",
+                back: "Kembali",
+                emptyState: "Filem belum dimuat naik lagi, harap bersabar..",
+                rankTitle: "Ranking Popular",
+                movieGenre: "Drama 13+",
+                newsDesc: "Maklumat terkini mengenai tayangan filem \"Dark Threats\".",
+                loginTitle: "Log Masuk",
+                lblUser: "Nama Pengguna",
+                lblPass: "Kata Laluan",
+                privacy: "Semua maklumat yang anda tulis di sini tidak dihantar ke @scorplay tetapi disimpan dalam peranti anda.",
+                confirm: "Sahkan",
+                editBtn: "Edit Profil",
+                editTitle: "Edit Profil",
+                editPhoto: "Tukar Foto Profil",
+                editName: "Tukar Nama",
+                save: "Simpan",
+                themeTitle: "Tukar Latar Belakang",
+                langTitle: "Bahasa",
+                logout: "Log Keluar",
+                alertLoginSuccess: "Log masuk berjaya!",
+                alertFillAll: "Sila lengkapkan semua medan.",
+                alertLogoutConfirm: "Adakah anda pasti mahu log keluar?",
+                alertProfileUpdated: "Profil berjaya dikemaskini!",
+                alertNameUpdated: "Nama berjaya dikemaskini!"
+            },
+            en: {
+                heroDesc: "Dark threats is a short film about human envy towards others because of their vastly greater wealth...",
+                trailer: "Watch trailer",
+                back: "Back",
+                emptyState: "The movie hasn't been uploaded yet, please wait..",
+                rankTitle: "Popular Ranking",
+                movieGenre: "Drama 13+",
+                newsDesc: "Latest information regarding the release of the movie \"Dark Threats\".",
+                loginTitle: "Login",
+                lblUser: "Username",
+                lblPass: "Password",
+                privacy: "All information written here is not sent to @scorplay but saved on your device.",
+                confirm: "Confirm",
+                editBtn: "Edit Profile",
+                editTitle: "Edit Profile",
+                editPhoto: "Change Profile Photo",
+                editName: "Change Name",
+                save: "Save",
+                themeTitle: "Change Background",
+                langTitle: "Language",
+                logout: "Log Out",
+                alertLoginSuccess: "Login Successful!",
+                alertFillAll: "Please complete all fields.",
+                alertLogoutConfirm: "Are you sure you want to log out?",
+                alertProfileUpdated: "Profile updated successfully!",
+                alertNameUpdated: "Name updated successfully!"
+            },
+            br: {
+                heroDesc: "Dark threats é um curta-metragem sobre a inveja humana em relação aos outros devido à sua riqueza muito maior...",
+                trailer: "Assista ao trailer",
+                back: "Voltar",
+                emptyState: "O filme ainda não foi enviado, aguarde..",
+                rankTitle: "Ranking Popular",
+                movieGenre: "Drama 13+",
+                newsDesc: "Informações recentes sobre o lançamento do filme \"Dark Threats\".",
+                loginTitle: "Entrar",
+                lblUser: "Nome de Usuário",
+                lblPass: "Senha",
+                privacy: "Todas as informações escritas aqui não são enviadas para @scorplay, mas salvas no seu dispositivo.",
+                confirm: "Confirmar",
+                editBtn: "Editar Perfil",
+                editTitle: "Editar Perfil",
+                editPhoto: "Mudar Foto",
+                editName: "Mudar Nome",
+                save: "Salvar",
+                themeTitle: "Mudar Fundo",
+                langTitle: "Idioma",
+                logout: "Sair",
+                alertLoginSuccess: "Login realizado com sucesso!",
+                alertFillAll: "Por favor, preencha todos os campos.",
+                alertLogoutConfirm: "Tem certeza que deseja sair?",
+                alertProfileUpdated: "Perfil atualizado com sucesso!",
+                alertNameUpdated: "Nome atualizado com sucesso!"
+            },
+            ph: {
+                heroDesc: "Ang Dark threats ay isang maikling pelikula tungkol sa inggit ng tao sa iba dahil sa mas malaking kayamanan nila...",
+                trailer: "Panoorin ang trailer",
+                back: "Bumalik",
+                emptyState: "Hindi pa na-upload ang pelikula, maghintay lang..",
+                rankTitle: "Sikat na Ranking",
+                movieGenre: "Drama 13+",
+                newsDesc: "Pinakabagong impormasyon tungkol sa pagpapalabas ng pelikulang \"Dark Threats\".",
+                loginTitle: "Mag-login",
+                lblUser: "Pangalan",
+                lblPass: "Password",
+                privacy: "Ang lahat ng impormasyon dito ay hindi ipinapadala sa @scorplay kundi naka-save sa iyong device.",
+                confirm: "Kumpirmahin",
+                editBtn: "I-edit ang Profile",
+                editTitle: "I-edit ang Profile",
+                editPhoto: "Baguhin ang Larawan",
+                editName: "Baguhin ang Pangalan",
+                save: "I-save",
+                themeTitle: "Baguhin ang Background",
+                langTitle: "Wika",
+                logout: "Mag-logout",
+                alertLoginSuccess: "Matagumpay ang pag-login!",
+                alertFillAll: "Pakipunan ang lahat ng patlang.",
+                alertLogoutConfirm: "Sigurado ka bang gusto mong mag-logout?",
+                alertProfileUpdated: "Matagumpay na na-update ang profile!",
+                alertNameUpdated: "Matagumpay na na-update ang pangalan!"
+            },
+            kr: {
+                heroDesc: "Dark threats는 다른 사람의 막대한 부에 대한 인간의 질투를 다룬 단편 영화입니다...",
+                trailer: "예고편 보기",
+                back: "돌아가기",
+                emptyState: "영화가 아직 업로드되지 않았습니다. 기다려주세요..",
+                rankTitle: "인기 순위",
+                movieGenre: "드라마 13+",
+                newsDesc: "영화 \"Dark Threats\" 개봉에 관한 최신 정보.",
+                loginTitle: "로그인",
+                lblUser: "사용자 이름",
+                lblPass: "비밀번호",
+                privacy: "여기에 작성된 모든 정보는 @scorplay로 전송되지 않고 기기에 저장됩니다.",
+                confirm: "확인",
+                editBtn: "프로필 편집",
+                editTitle: "프로필 편집",
+                editPhoto: "프로필 사진 변경",
+                editName: "이름 변경",
+                save: "저장",
+                themeTitle: "배경 변경",
+                langTitle: "언어",
+                logout: "로그아웃",
+                alertLoginSuccess: "로그인 성공!",
+                alertFillAll: "모든 필드를 작성해주세요.",
+                alertLogoutConfirm: "정말 로그아웃 하시겠습니까?",
+                alertProfileUpdated: "프로필이 성공적으로 업데이트되었습니다!",
+                alertNameUpdated: "이름이 성공적으로 업데이트되었습니다!"
+            },
+            jp: {
+                heroDesc: "Dark threatsは、他人の莫大な富に対する人間の嫉妬を描いた短編映画です...",
+                trailer: "予告編を見る",
+                back: "戻る",
+                emptyState: "映画はまだアップロードされていません。お待ちください..",
+                rankTitle: "人気ランキング",
+                movieGenre: "ドラマ 13+",
+                newsDesc: "映画「Dark Threats」の公開に関する最新情報。",
+                loginTitle: "ログイン",
+                lblUser: "ユーザー名",
+                lblPass: "パスワード",
+                privacy: "ここに入力された情報は@scorplayには送信されず、デバイスに保存されます。",
+                confirm: "確認",
+                editBtn: "プロフィール編集",
+                editTitle: "プロフィール編集",
+                editPhoto: "プロフィール写真変更",
+                editName: "名前変更",
+                save: "保存",
+                themeTitle: "背景変更",
+                langTitle: "言語",
+                logout: "ログアウト",
+                alertLoginSuccess: "ログイン成功！",
+                alertFillAll: "すべての項目を入力してください。",
+                alertLogoutConfirm: "本当にログアウトしますか？",
+                alertProfileUpdated: "プロフィールが正常に更新されました！",
+                alertNameUpdated: "名前が正常に更新されました！"
+            }
+        };
+
+        // --- INIT ---
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                var loader = document.getElementById('loading-screen');
+                var content = document.getElementById('main-content');
+                loader.style.opacity = '0';
+                setTimeout(function() {
+                    loader.style.display = 'none';
+                    content.style.display = 'block'; 
+                    setupScrollListener(); 
+                    setupNavigation(); 
+                    checkLoginStatus(); 
+                    loadSettings();
+                    setupVideoPlayer(); // Setup Video Logic
+                }, 500);
+            }, 2500); 
+        });
+
+        // --- VIDEO PLAYER LOGIC ---
+        function setupVideoPlayer() {
+            const btnTrailer = document.getElementById('btn-trailer');
+            const imgBanner = document.getElementById('main-banner-img');
+            const videoWrapper = document.getElementById('video-wrapper');
+            const video = document.getElementById('main-video');
+            
+            const btnPlay = document.getElementById('play-pause-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const currentTimeEl = document.getElementById('current-time');
+            const durationEl = document.getElementById('duration');
+
+            // 1. Toggle Button Action
+            btnTrailer.addEventListener('click', function(e) {
+                e.preventDefault();
+                const t = translations[currentLang];
+
+                if (!isVideoPlaying) {
+                    // Start Video Mode
+                    imgBanner.style.display = 'none';
+                    videoWrapper.style.display = 'block';
+                    btnTrailer.innerText = t.back;
+                    video.play().catch(e => console.log("Auto-play prevented"));
+                    btnPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                    isVideoPlaying = true;
+                } else {
+                    // Back to Banner Mode
+                    video.pause();
+                    video.currentTime = 0; // Reset
+                    videoWrapper.style.display = 'none';
+                    imgBanner.style.display = 'block';
+                    btnTrailer.innerText = t.trailer;
+                    btnPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+                    isVideoPlaying = false;
+                }
+            });
+
+            // 2. Play/Pause Button Logic
+            btnPlay.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    btnPlay.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                } else {
+                    video.pause();
+                    btnPlay.innerHTML = '<i class="fa-solid fa-play"></i>';
+                }
+            });
+
+            // 3. Update Progress & Time
+            video.addEventListener('timeupdate', function() {
+                const current = video.currentTime;
+                const duration = video.duration || 0;
+                
+                // Update slider value
+                if (duration > 0) {
+                    progressBar.value = (current / duration) * 100;
+                }
+                
+                // Update Text
+                currentTimeEl.innerText = formatTime(current);
+                durationEl.innerText = formatTime(duration);
+            });
+
+            // 4. Seek Logic
+            progressBar.addEventListener('input', function() {
+                const duration = video.duration || 0;
+                video.currentTime = (progressBar.value / 100) * duration;
+            });
+
+            // 5. Disable Context Menu (Right Click)
+            video.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return (min < 10 ? '0' + min : min) + ':' + (sec < 10 ? '0' + sec : sec);
+        }
+
+        // --- SCROLL LISTENER ---
+        function setupScrollListener() {
+            var navbar = document.getElementById("myNavbar");
+            var stickyPoint = navbar.offsetTop;
+            window.onscroll = function() {
+                if (window.pageYOffset >= stickyPoint) {
+                    navbar.classList.add("is-scrolled");
+                } else {
+                    navbar.classList.remove("is-scrolled");
+                }
+            };
+        }
+
+        // --- LOGIN LOGIC ---
+        function checkLoginStatus() {
+            var savedUser = localStorage.getItem('scorplay_user');
+            var savedEmail = localStorage.getItem('scorplay_email');
+            var savedPhoto = localStorage.getItem('scorplay_photo');
+            
+            var loginBox = document.getElementById('login-form-box');
+            var profileBox = document.getElementById('logged-in-box');
+            var dispName = document.getElementById('display-username');
+            var dispImg = document.getElementById('display-avatar-img');
+            var defIcon = document.getElementById('default-avatar-icon');
+
+            if (savedUser && savedEmail) {
+                loginBox.style.display = 'none';
+                profileBox.style.display = 'block';
+                dispName.innerText = savedUser;
+                
+                if (savedPhoto) {
+                    dispImg.src = savedPhoto;
+                    dispImg.style.display = 'block';
+                    defIcon.style.display = 'none';
+                } else {
+                    dispImg.style.display = 'none';
+                    defIcon.style.display = 'block';
+                }
+            } else {
+                loginBox.style.display = 'block';
+                profileBox.style.display = 'none';
+            }
+        }
+
+        function handleLogin() {
+            var name = document.getElementById('input-username').value;
+            var email = document.getElementById('input-email').value;
+            var pass = document.getElementById('input-password').value;
+            var t = translations[currentLang]; 
+
+            if (name && email && pass) {
+                localStorage.setItem('scorplay_user', name);
+                localStorage.setItem('scorplay_email', email);
+                checkLoginStatus();
+                alert(t.alertLoginSuccess);
+            } else {
+                alert(t.alertFillAll);
+            }
+        }
+
+        function handleLogout() {
+            var t = translations[currentLang];
+            if(confirm(t.alertLogoutConfirm)) {
+                localStorage.removeItem('scorplay_user');
+                localStorage.removeItem('scorplay_email');
+                localStorage.removeItem('scorplay_photo');
+                document.getElementById('edit-box').style.display = 'none';
+                checkLoginStatus();
+            }
+        }
+
+        // --- SETTINGS LOGIC (THEME & LANGUAGE) ---
+        function changeTheme(theme) {
+            var body = document.getElementById('app-body');
+            body.classList.remove('theme-purple', 'theme-white');
+            if (theme === 'purple') body.classList.add('theme-purple');
+            else if (theme === 'white') body.classList.add('theme-white');
+            localStorage.setItem('scorplay_theme', theme);
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang; 
+            var t = translations[lang];
+            if (!t) return;
+
+            document.getElementById('txt-desc').innerText = t.heroDesc;
+            
+            // Check state for button text
+            if (isVideoPlaying) {
+                document.getElementById('btn-trailer').innerText = t.back;
+            } else {
+                document.getElementById('btn-trailer').innerText = t.trailer;
+            }
+
+            document.getElementById('txt-empty').innerText = t.emptyState;
+            document.getElementById('txt-rank-title').innerText = t.rankTitle;
+            document.getElementById('txt-genre-1').innerText = t.movieGenre;
+            document.getElementById('txt-news-1').innerText = t.newsDesc;
+            
+            document.getElementById('txt-login-title').innerText = t.loginTitle;
+            document.getElementById('lbl-username').innerText = t.lblUser;
+            document.getElementById('lbl-password').innerText = t.lblPass;
+            document.getElementById('txt-privacy').innerText = t.privacy;
+            document.getElementById('btn-login-confirm').innerText = t.confirm;
+            
+            document.getElementById('txt-edit-btn').innerText = t.editBtn;
+            document.getElementById('txt-edit-title').innerText = t.editTitle;
+            document.getElementById('lbl-edit-photo').innerText = t.editPhoto;
+            document.getElementById('lbl-edit-name').innerText = t.editName;
+            document.getElementById('btn-save-edit').innerText = t.save;
+            
+            document.getElementById('txt-theme-title').innerText = t.themeTitle;
+            document.getElementById('txt-lang-title').innerText = t.langTitle;
+            document.getElementById('btn-logout').innerText = t.logout;
+
+            localStorage.setItem('scorplay_lang', lang);
+        }
+
+        function loadSettings() {
+            var savedTheme = localStorage.getItem('scorplay_theme');
+            if (savedTheme) changeTheme(savedTheme);
+
+            var savedLang = localStorage.getItem('scorplay_lang');
+            if (savedLang) {
+                document.getElementById('language-select').value = savedLang;
+                changeLanguage(savedLang);
+            } else {
+                changeLanguage('id'); 
+            }
+        }
+
+        // --- FITUR EDIT ---
+        function setupEditFeature() {
+            var btnShowEdit = document.getElementById('btn-show-edit');
+            var editBox = document.getElementById('edit-box');
+            var btnSave = document.getElementById('btn-save-edit');
+            
+            btnShowEdit.addEventListener('click', function() {
+                if (editBox.style.display === 'block') {
+                    editBox.style.display = 'none';
+                } else {
+                    editBox.style.display = 'block';
+                    var currentUser = localStorage.getItem('scorplay_user');
+                    if(currentUser) document.getElementById('edit-name-input').value = currentUser;
+                }
+            });
+
+            btnSave.addEventListener('click', function() {
+                var newName = document.getElementById('edit-name-input').value;
+                var fileInput = document.getElementById('edit-file-input');
+                var t = translations[currentLang];
+                
+                if (newName) localStorage.setItem('scorplay_user', newName);
+
+                if (fileInput.files && fileInput.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        localStorage.setItem('scorplay_photo', e.target.result);
+                        checkLoginStatus(); 
+                        editBox.style.display = 'none'; 
+                        alert(t.alertProfileUpdated);
+                    }
+                    reader.readAsDataURL(fileInput.files[0]);
+                } else {
+                    checkLoginStatus();
+                    editBox.style.display = 'none';
+                    alert(t.alertNameUpdated);
+                }
+            });
+        }
+
+        // --- NAVIGATION ---
+        function setupNavigation() {
+            var btnHome = document.getElementById('btn-home');
+            var btnSort = document.getElementById('btn-sort');
+            var btnNews = document.getElementById('btn-news');
+            var btnProfile = document.getElementById('btn-profile');
+            
+            var defaultArea = document.getElementById('default-scroll-area');
+            var sortPage = document.getElementById('sort-page');
+            var newsPage = document.getElementById('news-page');
+            var profilePage = document.getElementById('profile-page');
+
+            document.getElementById('btn-login-confirm').addEventListener('click', handleLogin);
+            document.getElementById('btn-logout').addEventListener('click', handleLogout);
+            setupEditFeature();
+
+            function hideAll() {
+                defaultArea.style.display = 'none';
+                sortPage.style.display = 'none';
+                newsPage.style.display = 'none';
+                profilePage.style.display = 'none';
+                btnHome.classList.remove('active');
+                btnSort.classList.remove('active');
+                btnNews.classList.remove('active');
+                btnProfile.classList.remove('active');
+            }
+
+            btnHome.addEventListener('click', function(e) {
+                e.preventDefault(); hideAll();
+                defaultArea.style.display = 'block';
+                btnHome.classList.add('active');
+            });
+            btnSort.addEventListener('click', function(e) {
+                e.preventDefault(); hideAll();
+                sortPage.style.display = 'block';
+                btnSort.classList.add('active');
+            });
+            btnNews.addEventListener('click', function(e) {
+                e.preventDefault(); hideAll();
+                newsPage.style.display = 'block';
+                btnNews.classList.add('active');
+            });
+            btnProfile.addEventListener('click', function(e) {
+                e.preventDefault(); hideAll();
+                profilePage.style.display = 'block';
+                btnProfile.classList.add('active');
+            });
+        }
+    </script>
+
+</body>
+</html>
